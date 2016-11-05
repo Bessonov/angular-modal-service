@@ -2,8 +2,8 @@
 
 let module = angular.module('angularModalService', []);
 
-module.factory('ModalService', ['$animate', '$document', '$compile', '$controller', '$http', '$rootScope', '$q', '$templateRequest', '$timeout',
-  function($animate, $document, $compile, $controller, $http, $rootScope, $q, $templateRequest, $timeout) {
+module.factory('ModalService', ['$animate', '$document', '$compile', '$controller', '$http', '$rootScope', '$q', '$templateCache', '$timeout',
+  function($animate, $document, $compile, $controller, $http, $rootScope, $q, $templateCache, $timeout) {
 
   function ModalService() {
 
@@ -17,12 +17,19 @@ module.factory('ModalService', ['$animate', '$document', '$compile', '$controlle
       if (template) {
         deferred.resolve(template);
       } else if (templateUrl) {
-        $templateRequest(templateUrl, true)
-          .then(function(template) {
-            deferred.resolve(template);
-          }, function(error) {
-            deferred.reject(error);
-          });
+        var cached = $templateCache.get(templateUrl);
+        if (cached) {
+          var templateFromCache = cached[1];
+          deferred.resolve(templateFromCache);
+        } else {
+          $http.get(templateUrl)
+            .then(function(response) {
+              $templateCache.put(templateUrl, [response.status, response.data, response.headers]);
+              deferred.resolve(response.data);
+            }, function(error) {
+              deferred.reject(error);
+            });
+        }
       } else {
         deferred.reject("No template or templateUrl has been specified.");
       }
@@ -35,7 +42,7 @@ module.factory('ModalService', ['$animate', '$document', '$compile', '$controlle
     var appendChild = function(parent, child) {
       var children = parent.children();
       if (children.length > 0) {
-        return $animate.enter(child, parent, children[children.length - 1]);
+        return $animate.enter(child, parent, angular.element(children[children.length - 1]));
       }
       return $animate.enter(child, parent);
     };
@@ -127,8 +134,7 @@ module.factory('ModalService', ['$animate', '$document', '$compile', '$controlle
             closeDeferred.resolve(result);
 
             //  Let angular remove the element and wait for animations to finish.
-            $animate.leave(modalElement)
-                    .then(function () {
+            $animate.leave(modalElement, function () {
                       //  Resolve the 'closed' promise.
                       closedDeferred.resolve(result);
 

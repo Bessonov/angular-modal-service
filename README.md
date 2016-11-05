@@ -1,3 +1,13 @@
+Fork is based on [#108](https://github.com/dwmkerr/angular-modal-service/issues/108).
+
+Tests are not working.
+
+Use
+```bash
+bower install Bessonov/angular-modal-service --save
+```
+to install.
+
 angular-modal-service
 =====================
 
