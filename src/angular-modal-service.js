@@ -122,7 +122,8 @@ module.factory('ModalService', ['$animate', '$document', '$compile', '$controlle
             scope: modalScope,
             element: modalElement,
             close: closeDeferred.promise,
-            closed: closedDeferred.promise
+            closed: closedDeferred.promise,
+            doClose: inputs.close
           };
 
           //  ...which is passed to the caller via the promise.
